@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .video-container {
+      background-color: white;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      border-radius: 8px;
+      width: 300px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .video-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .video-list li {
+      margin: 10px 0;
+    }
+
+    .video-list button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px;
+      width: 100%;
+      font-size: 16px;
+    }
+
+    .video-list button:hover {
+      background-color: #45a049;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+<div class="video-container">
+  <h1>Video List</h1>
+  <ul class="video-list">
+    <li><button onclick="openVideo(1)">Video 1</button></li>
+    <li><button onclick="openVideo(2)">Video 2</button></li>
+    <li><button onclick="openVideo(3)">Video 3</button></li>
+  </ul>
+</div>
+
+<script>
+  function openVideo(videoId) {
+  const userId = localStorage.getItem('userId');  // Fetching userId from localStorage (example)
+
+  if (!userId) {
+    alert("User not logged in. Please log in to access the video.");
+    return;
+  }
+
+  // Send the video ID to the server along with the user ID
+  fetch('/api/accessVideo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, videoId })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.message === "Access granted to the video!") {
+      // Allow the user to watch the video
+      window.location.href = `/video/${videoId}`;
+    } else {
+      // Ask for code if access is denied
+      const code = prompt("Please enter the code to access the video:");
+      verifyCode(code, videoId, userId);
+    }
+  });
+}
+
+</script>
+
+</body>
+</html>

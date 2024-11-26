@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Codes</title>
+  <meta http-equiv="refresh" content="5">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      position: relative;
+      margin: 0;
+    }
+    h1 {
+      color: #333;
+    }
+    /* Style for the 3-column layout */
+    .codes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      padding: 0;
+      margin-top: 60px; /* Adjust space for buttons */
+      list-style-type: none;
+      width: 80%;
+    }
+    .codes li {
+      background-color: #fff;
+      padding: 15px;
+      margin: 5px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .codes li:hover {
+      background-color: #f0f0f0;
+    }
+    .codes li.selected {
+      background-color: #ffcccc;
+    }
+    /* Fixed button styles */
+    button {
+      background-color: #6e8efb;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      position: fixed;
+      z-index: 10; /* Ensure buttons are above other content */
+    }
+    #addCodeButton {
+      top: 10px;
+      right: 10px;
+    }
+    #deleteButton {
+      top: 10px;
+      left: 10px;
+    }
+    button:hover {
+      background-color: #5b77e0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Manage Codes</h1>
+  <ul class="codes" id="codeList"></ul>
+  <!-- Fixed buttons -->
+  <button id="deleteButton" onclick="deleteSelectedCodes()">Delete Selected</button>
+  <button id="addCodeButton">Add Code</button>
+
+  <script>
+    // Fetch all codes from the server and display them
+    async function loadCodes() {
+      const response = await fetch('http://localhost:3000/api/codes');
+      const codes = await response.json();
+      const codeList = document.getElementById('codeList');
+      codeList.innerHTML = ''; // Clear the list before adding new items
+      codes.forEach((code) => {
+        const li = document.createElement('li');
+        li.textContent = code.code;
+        li.onclick = () => toggleCodeSelection(li);
+        li.oncontextmenu = (event) => handleRightClick(event, li); // Add right-click event listener
+        codeList.appendChild(li);
+      });
+    }
+
+    // Toggle the selection of a code (turn red or back to normal)
+    function toggleCodeSelection(li) {
+      li.classList.toggle('selected');
+    }
+
+    // Add a new code to both the database and the view
+    async function addCode() {
+      const response = await fetch('http://localhost:3000/api/addCode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const result = await response.json();
+      if (response.ok) {
+        alert(`New code added: ${result.code}`);
+        loadCodes(); // Reload the codes after adding a new one
+      } else {
+        alert(result.error);
+      }
+    }
+
+    // Delete selected codes only from the view (not the database)
+    function deleteSelectedCodes() {
+      const selectedCodes = document.querySelectorAll('.codes li.selected');
+      if (selectedCodes.length === 0) {
+        alert('No codes selected to delete');
+        return;
+      }
+
+      // Loop through each selected code and remove it from the view (DOM)
+      selectedCodes.forEach(li => li.remove());
+    }
+
+    // Handle right-click event to copy code to clipboard
+    function handleRightClick(event, li) {
+      event.preventDefault(); // Prevent the context menu from showing
+
+      // Copy the code text to clipboard
+      const code = li.textContent;
+      navigator.clipboard.writeText(code)
+        .then(() => {
+          alert(`Code copied to clipboard: ${code}`);
+        })
+        .catch((error) => {
+          console.error('Error copying to clipboard:', error);
+        });
+    }
+
+    // Initialize the page
+    document.getElementById('addCodeButton').addEventListener('click', addCode);
+
+    // Load the codes when the page loads
+    loadCodes();
+    setTimeout(() => {
+    location.reload();
+  }, 5000); // 5000ms = 5 seconds
+  </script>
+</body>
+</html>

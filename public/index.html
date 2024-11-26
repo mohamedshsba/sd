@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login & Register</title>
+  <style>
+    /* Reset some default styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #6e8efb, #a777e3);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 40px;
+      border-radius: 10px;
+      width: 350px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 24px;
+      color: #ffffff;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: none;
+      border-radius: 5px;
+      background: #2c2c2c;
+      color: #fff;
+      font-size: 16px;
+    }
+
+    input:focus {
+      outline: none;
+      border: 1px solid #6e8efb;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #6e8efb;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background: #5b77e0;
+    }
+
+    .switch {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .switch a {
+      color: #6e8efb;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .switch a:hover {
+      text-decoration: underline;
+    }
+
+    .form-container {
+      display: none;
+    }
+
+    .form-container.active {
+      display: block;
+    }
+
+    /* Spinner styles */
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #6e8efb;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 10px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Login Form -->
+    <div id="login-form" class="form-container active">
+      <h2>Login</h2>
+      <form onsubmit="login(event)">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" placeholder="Enter your email" required>
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="Enter your password" required>
+        <button type="submit">Login</button>
+      </form>
+      <div class="switch">
+        Don't have an account? <a href="#" onclick="showRegister()">Register</a>
+      </div>
+    </div>
+
+    <!-- Register Form -->
+    <div id="register-form" class="form-container">
+      <h2>Register</h2>
+      <form onsubmit="register(event)">
+        <label for="register-email">Email</label>
+        <input type="email" id="register-email" placeholder="Enter your email" required>
+        <label for="register-password">Password</label>
+        <input type="password" id="register-password" placeholder="Enter your password" required>
+        <button type="submit">Register</button>
+      </form>
+      <div class="switch">
+        Already have an account? <a href="#" onclick="showLogin()">Login</a>
+      </div>
+    </div>
+
+    <!-- Spinner (hidden by default) -->
+    <div id="spinner" class="spinner" style="display:none;"></div>
+  </div>
+
+  <script>
+    // Function to handle login
+    async function login(event) {
+      event.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      document.getElementById('spinner').style.display = 'block'; // Show spinner while waiting
+
+      const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const result = await response.json();
+      document.getElementById('spinner').style.display = 'none'; // Hide spinner after response
+
+      if (response.ok) {
+        localStorage.setItem('userEmail', email);
+        window.location.href = "sim.html"; // Redirect after login
+      } else {
+        alert(result.error);
+      }
+    }
+
+    // Function to handle registration
+    async function register(event) {
+      event.preventDefault();
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+      document.getElementById('spinner').style.display = 'block'; // Show spinner while waiting
+
+      const response = await fetch('http://localhost:3000/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const result = await response.json();
+      document.getElementById('spinner').style.display = 'none'; // Hide spinner after response
+
+      if (response.ok) {
+        alert('Registration successful!');
+        showLogin();  // Switch to login form after successful registration
+      } else {
+        alert(result.error);
+      }
+    }
+
+    // Function to show the login form
+    function showLogin() {
+      document.getElementById('register-form').classList.remove('active');
+      document.getElementById('login-form').classList.add('active');
+    }
+
+    // Function to show the register form
+    function showRegister() {
+      document.getElementById('login-form').classList.remove('active');
+      document.getElementById('register-form').classList.add('active');
+    }
+  </script>
+</body>
+</html>
